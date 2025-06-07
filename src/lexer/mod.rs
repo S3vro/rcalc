@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     LBracket,
     RBracket,
@@ -9,15 +9,23 @@ pub enum Token {
     Num {value: u32}
 }
 
-pub struct Lexer {
-    source: String,
+pub struct Lexer<'a> {
+    source: &'a str,
     pos: usize,
     line: usize
 }
 
-impl Lexer {
+impl Iterator for Lexer<'_> {
+    type Item = Token;
 
-    pub fn new(source: String) -> Lexer {
+    fn next(&mut self) -> Option<Token>{
+        self.next_token()
+    }
+}
+
+impl Lexer<'_> {
+
+    pub fn new(source: &str) -> Lexer {
         Lexer { source: source, pos: 0, line: 0 }
     }
 
@@ -33,6 +41,8 @@ impl Lexer {
                 ')' => {self.pos += 1; Token::RBracket},
                 '+' => {self.pos += 1; Token::Plus},
                 '-' => {self.pos += 1; Token::Minus},
+                '*' => {self.pos += 1; Token::Mult},
+                '/' => {self.pos += 1; Token::Div},
                 _ => self.parse_number(),
         };
 

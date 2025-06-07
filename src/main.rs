@@ -1,6 +1,7 @@
 use clap::Parser;
 
 use rcalc::lexer::Lexer;
+use rcalc::parser::{TokenSource, self};
 
 
 #[derive(Parser, Debug)]
@@ -11,11 +12,10 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-    let mut lexer = Lexer::new("10-1+3".to_string());
+    let lexer = Lexer::new("3*10-1+3");
+    let tokens = lexer.into_iter().collect::<Vec<_>>();
+    let mut token_src = TokenSource::new(tokens);
 
-    while let Some(t) = lexer.next_token() {
-        println!("Found token: {:?}", t);
-    }
-
-    println!("Now opening file {}", args.input_file);
+    let root = parser::parse_expr(&mut token_src);
+    println!("Parsed to: {:?}", root);
 }
