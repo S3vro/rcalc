@@ -1,4 +1,5 @@
 use crate::lexer::Token;
+use std::fmt;
 
 #[derive(Debug)]
 pub enum Expr {
@@ -18,6 +19,36 @@ pub enum BinaryOp {
     Sub,
     Mul,
     Div
+}
+
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Expr::Int(n) => write!(f, "{n}"),
+            Expr::Unary(op, expr) => write!(f, "{}({})", op, expr),
+            Expr::Binary(op, lhs, rhs) => write!(f, "({} {} {})", lhs, op, rhs),
+        }
+    }
+}
+
+impl fmt::Display for UnaryOp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            UnaryOp::Neg => write!(f, "-"),
+        }
+    }
+}
+
+impl fmt::Display for BinaryOp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            BinaryOp::Add => "+",
+            BinaryOp::Sub => "-",
+            BinaryOp::Mul => "*",
+            BinaryOp::Div => "/",
+        };
+        write!(f, "{s}")
+    }
 }
 
 pub struct TokenSource {
@@ -42,7 +73,6 @@ impl TokenSource {
 
     pub fn consume(&mut self) -> Token {
         let token = self.peek();
-        println!("Consumed {:?}", token);
         self.pos += 1;
         token
     }

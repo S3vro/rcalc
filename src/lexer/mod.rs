@@ -30,32 +30,38 @@ impl Lexer<'_> {
     }
 
     pub fn next_token(&mut self) -> Option<Token> {
-        if self.pos >= self.source.len() {
+
+        if !self.has_more() {
             return None;
         } 
 
         self.skip_whitespace();
 
-        let token = match self.peek() {
-                '(' => {self.pos += 1; Token::LBracket},
-                ')' => {self.pos += 1; Token::RBracket},
-                '+' => {self.pos += 1; Token::Plus},
-                '-' => {self.pos += 1; Token::Minus},
-                '*' => {self.pos += 1; Token::Mult},
-                '/' => {self.pos += 1; Token::Div},
-                _ => self.parse_number(),
-        };
-
-        Some(token)
+        match self.peek() {
+            Some(c) if "()+-*/".contains(c) => {
+                self.pos += 1;
+                Some(match c {
+                    '(' => Token::LBracket,
+                    ')' => Token::RBracket,
+                    '+' => Token::Plus,
+                    '-' => Token::Minus,
+                    '*' => Token::Mult,
+                    '/' => Token::Div,
+                    _ => unreachable!(),
+                })
+            },
+            Some(_) => Some(self.parse_number()),
+            None => None,
+        }
     }
 
     fn skip_whitespace(&mut self) {
         loop {
-            if !Lexer::is_whitespace(self.peek()) {
+            if !self.has_more() || !self.peek().unwrap().is_whitespace() {
                 break;
             }
 
-            if self.peek() == '\n' || self.peek() == '\r' {
+            if self.peek().unwrap() == '\n' || self.peek().unwrap() == '\r' {
                     self.line += 1;
             }
 
@@ -66,11 +72,11 @@ impl Lexer<'_> {
     fn parse_number(&mut self) -> Token {
         let start = self.pos;
 
-        if !Lexer::is_numeric(self.peek()) {
+        if !self.peek().unwrap().is_numeric() {
             panic!("Lexing error! NaN");
         }
 
-        while self.has_more()  && Lexer::is_numeric(self.peek()) {
+        while self.has_more()  && self.peek().unwrap().is_numeric() {
                 self.pos += 1;
         } 
 
@@ -80,25 +86,12 @@ impl Lexer<'_> {
         Token::Num { value: val }
     }
 
-    fn peek(&self) -> char {
-        if let Some(c) = self.source.chars().nth(self.pos) {
-            c
-        } else {
-            panic!("Could not peek no chars found");
-        }
+    fn peek(&self) -> Option<char> {
+        self.source.chars().nth(self.pos) 
     }
 
     fn has_more(&self) -> bool {
         return self.pos < self.source.len();
-    }
-
-
-    fn is_numeric(c: char) -> bool {
-        return c >= '0' && c <= '9';
-    }
-
-    fn is_whitespace(c:char) -> bool {
-        return c == ' ' || c == '\n' || c == '\r' || c == '\t';
     }
 }
 
